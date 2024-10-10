@@ -3,56 +3,76 @@
  * Students can modify and extend to implement their game.
  * Add your name as an author and the date!
  */
-package ca.sheridancollege.project;
 
-import java.util.ArrayList;
+package ca.sheridancollege.project;
 
 /**
  * The class that models your game. You should create a more specific child of this class and instantiate the methods
  * given.
  *
- * @author dancye
- * @author Paul Bonenfant Jan 2020
+ * @author Kirandeep Kaur Oct 2024
  */
-public abstract class Game {
+import java.util.ArrayList;
+import java.util.List;
 
-    private final String name;//the title of the game
-    private ArrayList<Player> players;// the players of the game
+public class Game {
+    private List<Player> players;
+    private int rounds;
 
-    public Game(String name) {
-        this.name = name;
-        players = new ArrayList();
+    public Game(List<String> playerNames) {
+        players = new ArrayList<>();
+        for (String name : playerNames) {
+            players.add(new Player(name));
+        }
+        rounds = 0;
     }
 
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return name;
+    public void startGame() {
+        GroupOfCard deck = new GroupOfCard();
+        for (int i = 0; i < deck.size() / players.size(); i++) {
+            for (Player player : players) {
+                player.receiveCard(deck.drawCard());
+            }
+        }
+        playRounds();
     }
 
-    /**
-     * @return the players of this game
-     */
-    public ArrayList<Player> getPlayers() {
-        return players;
+    private void playRounds() {
+        while (players.stream().anyMatch(player -> player.cardsRemaining() > 0)) {
+            rounds++;
+            playRound();
+        }
+        determineWinner();
     }
 
-    /**
-     * @param players the players of this game
-     */
-    public void setPlayers(ArrayList<Player> players) {
-        this.players = players;
+    private void playRound() {
+        System.out.println("Round " + rounds);
+        List<Card> playedCards = new ArrayList<>();
+        for (Player player : players) {
+            Card card = player.playCard();
+            if (card != null) {
+                playedCards.add(card);
+                System.out.println(player.getName() + " plays " + card);
+            }
+        }
+        determineRoundWinner(playedCards);
     }
 
-    /**
-     * Play the game. This might be one method or many method calls depending on your game.
-     */
-    public abstract void play();
+    private void determineRoundWinner(List<Card> playedCards) {
+        Card winningCard = null;
+        Player roundWinner = null;
 
-    /**
-     * When the game is over, use this method to declare and display a winning player.
-     */
-    public abstract void declareWinner();
+        for (int i = 0; i < playedCards.size(); i++) {
+            if (winningCard == null || playedCards.get(i).getValue() > winningCard.getValue()) {
+                winningCard = playedCards.get(i);
+                roundWinner = players.get(i);
+            }
+        }
+        System.out.println(roundWinner.getName() + " wins this round with " + winningCard);
+        
+    }
 
-}//end class
+    private void determineWinner() {
+        System.out.println("Game Over!");
+    }
+}
