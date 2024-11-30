@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * The class that models your game.
- * @author Kirandeep Kaur Oct 2024
+ * @author Kirandeep Kaur Nov 2024
  */
 public class Game {
     private List<Player> players;
