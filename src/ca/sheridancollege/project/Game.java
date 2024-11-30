@@ -6,18 +6,17 @@
 
 package ca.sheridancollege.project;
 
-/**
- * The class that models your game. You should create a more specific child of this class and instantiate the methods
- * given.
- *
- * @author Kirandeep Kaur Oct 2024
- */
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The class that models your game.
+ * @author Kirandeep Kaur Oct 2024
+ */
 public class Game {
     private List<Player> players;
     private int rounds;
+    private GroupOfCard deck;
 
     public Game(List<String> playerNames) {
         players = new ArrayList<>();
@@ -25,16 +24,25 @@ public class Game {
             players.add(new Player(name));
         }
         rounds = 0;
+        deck = new GroupOfCard();
     }
 
     public void startGame() {
-        GroupOfCard deck = new GroupOfCard();
-        for (int i = 0; i < deck.size() / players.size(); i++) {
+        deck.shuffle();
+        dealCards();
+        playRounds();
+        determineWinner();
+    }
+
+    private void dealCards() {
+        while (deck.size() > 0) {
             for (Player player : players) {
-                player.receiveCard(deck.drawCard());
+                Card card = deck.drawCard();
+                if (card != null) {
+                    player.receiveCard(card);
+                }
             }
         }
-        playRounds();
     }
 
     private void playRounds() {
@@ -42,7 +50,6 @@ public class Game {
             rounds++;
             playRound();
         }
-        determineWinner();
     }
 
     private void playRound() {
@@ -59,20 +66,29 @@ public class Game {
     }
 
     private void determineRoundWinner(List<Card> playedCards) {
-        Card winningCard = null;
-        Player roundWinner = null;
+        Card winningCard = playedCards.get(0);
+        Player roundWinner = players.get(0);
 
-        for (int i = 0; i < playedCards.size(); i++) {
-            if (winningCard == null || playedCards.get(i).getValue() > winningCard.getValue()) {
+        for (int i = 1; i < playedCards.size(); i++) {
+            if (playedCards.get(i).outranks(winningCard)) {
                 winningCard = playedCards.get(i);
                 roundWinner = players.get(i);
             }
         }
         System.out.println(roundWinner.getName() + " wins this round with " + winningCard);
-        
+        roundWinner.receiveCard(winningCard);
     }
 
     private void determineWinner() {
-        System.out.println("Game Over!");
+        Player winner = players.stream()
+                .max((p1, p2) -> Integer.compare(p1.cardsRemaining(), p2.cardsRemaining()))
+                .orElse(null);
+        
+        if (winner != null) {
+            System.out.println("Game Over! The winner is " + winner.getName() + 
+                               " with " + winner.cardsRemaining() + " cards!");
+        } else {
+            System.out.println("Game Over! It's a tie!");
+        }
     }
 }
